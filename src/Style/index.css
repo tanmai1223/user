@@ -1,0 +1,39 @@
+/* index.css */
+
+/* Reset & base styles for mobile */
+@media only screen and (max-width: 480px) {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: "DM Sans", sans-serif;
+    overflow-y: auto; /* Page scroll enabled */
+    -webkit-overflow-scrolling: touch; /* smooth scroll on iOS */
+    background-color: #f9f9f9;
+  }
+
+  /* App layout container */
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Allow container to grow beyond viewport */
+    padding: 20px;
+  }
+
+  /* Headings */
+  .headings h2 {
+    font-size: 32px;
+    margin-bottom: 5px;
+    color: #222;
+  }
+
+  .headings h3 {
+    font-size: 23px;
+    margin-bottom: 15px;
+    color: #555;
+  }
+}

@@ -1,0 +1,39 @@
+@media only screen and (max-width: 480px) {
+
+  .final-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* vertically center */
+    align-items: center; /* horizontally center */
+    min-height: 100vh;
+    padding: 20px;
+    position: relative;
+    background-color: #20BF6D;
+    font-family: "DM Sans", sans-serif;
+  }
+
+  .thank-you-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .thank-you-section h1 {
+    font-size: 2rem;
+    color: #222;
+  }
+
+  .checkmark {
+    font-size: 4rem;
+    color: #dad8d8;
+  }
+
+  .redirect-count {
+    position: absolute;
+    bottom: 30px;
+    font-size: 1rem;
+    color: #555;
+  }
+
+}
