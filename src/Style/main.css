@@ -1,4 +1,18 @@
 @media only screen and (max-width: 480px) {
+  .home-page {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  height: 100vh; /* Take full screen height */
+  overflow: hidden; /* Prevent full page scroll */
+}
+.scroll-container {
+  flex: 1; /* Take remaining height */
+  overflow-y: auto;
+  height: auto;
+  padding-bottom: 80px; /* for footer space */
+  -webkit-overflow-scrolling: touch;
+}
   /* Search bar */
   .searchbar {
     margin-bottom: 15px;
@@ -87,15 +101,17 @@
 
   /* Scrollable main section */
   .scroll-container {
-    flex: 1; /* Take remaining space */
-    overflow-y: auto; /* Only this scrolls */
-    padding-bottom: 80px; /* Prevent footer overlap */
-  }
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 80px;
+  height: calc(100vh - 260px); /* 👈 Ensure visible area is scrollable */
+}
 
-  .scroll-container::-webkit-scrollbar {
-    width: 0;
-    background: transparent;
-  }
+.scroll-container::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
+
 
   /* Menu grid */
   .menu-display {

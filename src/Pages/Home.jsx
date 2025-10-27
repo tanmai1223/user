@@ -4,12 +4,11 @@ import Display from "../Component/Display";
 import Signin from "../Component/SingIn";
 
 function Home() {
-  const [selectedCategory, setSelectedCategory] = useState(""); 
-  const [searchTerm, setSearchTerm] = useState(""); 
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [showSignin, setShowSignin] = useState(false);
 
   useEffect(() => {
-    // Show popup only if user details not in localStorage
     const userDetails = localStorage.getItem("userDetails");
     if (!userDetails) setShowSignin(true);
   }, []);
@@ -26,8 +25,7 @@ function Home() {
   ];
 
   return (
-    <div className="app-container">
-      {/* Home page content */}
+    <div className="home-page">
       <div className="headings">
         <h2>Welcome 😊</h2>
         <h3>Place your order here...</h3>
@@ -57,11 +55,11 @@ function Home() {
         ))}
       </div>
 
+      {/* 👇 Scrollable section */}
       <div className="scroll-container">
         <Display item={selectedCategory} search={searchTerm} />
       </div>
 
-      {/* Signin popup on top */}
       {showSignin && <Signin onSubmit={() => setShowSignin(false)} />}
     </div>
   );

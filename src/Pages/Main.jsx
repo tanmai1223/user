@@ -21,20 +21,31 @@ function Main() {
   const swipeRef = useRef(null);
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
-  // Calculate total and averageTime on-the-fly
-  const total = Object.values(items).reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const totalQty = Object.values(items).reduce((acc, item) => acc + item.quantity, 0);
-  const totalTime = Object.values(items).reduce((acc, item) => acc + item.time * item.quantity, 0);
+  // Calculate totals
+  const total = Object.values(items).reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0
+  );
+  const totalQty = Object.values(items).reduce(
+    (acc, item) => acc + item.quantity,
+    0
+  );
+  const totalTime = Object.values(items).reduce(
+    (acc, item) => acc + item.time * item.quantity,
+    0
+  );
   const averageTime = totalQty > 0 ? Math.floor(totalTime / totalQty) + 15 : 15;
 
-  // Swipe handlers
-  const startDrag = clientX => {
+  // Swipe logic
+  const startDrag = (clientX) => {
     setIsDragging(true);
+    setIsResetting(false);
     updateDrag(clientX);
   };
 
-  const updateDrag = clientX => {
+  const updateDrag = (clientX) => {
     if (!isDragging) return;
     const rect = swipeRef.current.getBoundingClientRect();
     let x = clientX - rect.left - 30;
@@ -43,11 +54,21 @@ function Main() {
     setDragX(x);
   };
 
+  const resetSwipe = () => {
+    setIsResetting(true);
+    setDragX(0);
+    setTimeout(() => setIsResetting(false), 300); // smooth reset
+  };
+
   const submitOrder = async () => {
     try {
       const userDetails = JSON.parse(localStorage.getItem("userDetails"));
       if (!userDetails) {
-        toast.error("User details missing!", { position: "top-center", autoClose: 3000 });
+        toast.error("User details missing!", {
+          position: "top-center",
+          autoClose: 3000,
+        });
+        resetSwipe();
         return;
       }
 
@@ -56,9 +77,16 @@ function Main() {
         quantity: details.quantity,
       }));
 
-      const totalTimeSafe = Object.values(items).reduce((acc, item) => acc + (item.time || 0) * item.quantity, 0);
-      const totalQtySafe = Object.values(items).reduce((acc, item) => acc + item.quantity, 0);
-      const averageTimeSafe = totalQtySafe > 0 ? Math.floor(totalTimeSafe / totalQtySafe) + 15 : 15;
+      const totalTimeSafe = Object.values(items).reduce(
+        (acc, item) => acc + (item.time || 0) * item.quantity,
+        0
+      );
+      const totalQtySafe = Object.values(items).reduce(
+        (acc, item) => acc + item.quantity,
+        0
+      );
+      const averageTimeSafe =
+        totalQtySafe > 0 ? Math.floor(totalTimeSafe / totalQtySafe) + 15 : 15;
 
       const body = {
         name: userDetails.name,
@@ -77,31 +105,46 @@ function Main() {
       });
 
       const data = await res.json();
+
       if (res.ok) {
-        toast.success("Order submitted successfully!", { position: "top-center", autoClose: 2000 });
+        toast.success("Order submitted successfully!", {
+          position: "top-center",
+          autoClose: 2000,
+        });
         setTimeout(() => navigate("/final"), 2000);
       } else {
-        toast.error(data.message || "Failed to submit order", { position: "top-center", autoClose: 3000 });
+        toast.error(data.message || "Failed to submit order", {
+          position: "top-center",
+          autoClose: 3000,
+        });
+        resetSwipe();
       }
     } catch (err) {
       console.error(err);
-      toast.error("Error submitting order", { position: "top-center", autoClose: 3000 });
+      toast.error("Error submitting order", {
+        position: "top-center",
+        autoClose: 3000,
+      });
+      resetSwipe();
     }
   };
 
   const endDrag = async () => {
     if (!isDragging) return;
     const rect = swipeRef.current.getBoundingClientRect();
-    if (dragX > rect.width - 80) await submitOrder();
-    else setDragX(0);
+    if (dragX > rect.width - 80) {
+      await submitOrder();
+    } else {
+      resetSwipe();
+    }
     setIsDragging(false);
   };
 
-  const handleMouseDown = e => startDrag(e.clientX);
-  const handleMouseMove = e => updateDrag(e.clientX);
+  const handleMouseDown = (e) => startDrag(e.clientX);
+  const handleMouseMove = (e) => updateDrag(e.clientX);
   const handleMouseUp = () => endDrag();
-  const handleTouchStart = e => startDrag(e.touches[0].clientX);
-  const handleTouchMove = e => updateDrag(e.touches[0].clientX);
+  const handleTouchStart = (e) => startDrag(e.touches[0].clientX);
+  const handleTouchMove = (e) => updateDrag(e.touches[0].clientX);
   const handleTouchEnd = () => endDrag();
 
   return (
@@ -119,13 +162,17 @@ function Main() {
       {/* Toggle Buttons */}
       <div className="toggle-container">
         <button
-          className={`toggle-btn ${selectedOption === "DineIn" ? "active" : ""}`}
+          className={`toggle-btn ${
+            selectedOption === "DineIn" ? "active" : ""
+          }`}
           onClick={() => setSelectedOption("DineIn")}
         >
           DineIn
         </button>
         <button
-          className={`toggle-btn ${selectedOption === "TakeAway" ? "active" : ""}`}
+          className={`toggle-btn ${
+            selectedOption === "TakeAway" ? "active" : ""
+          }`}
           onClick={() => setSelectedOption("TakeAway")}
         >
           TakeAway
@@ -135,7 +182,9 @@ function Main() {
       {/* Render selected option */}
       <div className="option-container">
         {selectedOption === "DineIn" && <DineIn total={total} />}
-        {selectedOption === "TakeAway" && <TakeAway total={total} time={averageTime} />}
+        {selectedOption === "TakeAway" && (
+          <TakeAway total={total} time={averageTime} />
+        )}
       </div>
 
       {/* Swipe Button */}
@@ -150,7 +199,10 @@ function Main() {
       >
         <div
           className="swipe-btn"
-          style={{ transform: `translateX(${dragX}px)` }}
+          style={{
+            transform: `translateX(${dragX}px)`,
+            transition: isResetting ? "transform 0.3s ease" : "none",
+          }}
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
         >
