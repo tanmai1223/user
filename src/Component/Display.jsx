@@ -127,6 +127,7 @@ function Display({ item, search }) {
         price: item.price,
         image: item.image,
         time: item.averageTime,
+        category:item.category,
       },
     }));
   };
@@ -142,6 +143,7 @@ function Display({ item, search }) {
           price: item.price,
           image: item.image,
           time: item.averageTime,
+          category:item.category,
         },
       };
     });

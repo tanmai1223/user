@@ -5,6 +5,7 @@ import "../Style/home.css";
 function Ordered({ count, setCount, onTotalChange }) { // <-- added setCount
   const [data, setData] = useState({ ...count });
   const orderedItems = Object.entries(data);
+  //console.log(count)
 
   // Whenever `data` changes, update parent states
   useEffect(() => {

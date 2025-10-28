@@ -14,7 +14,7 @@ function Main() {
   const location = useLocation();
   const navigate = useNavigate();
   const initialCount = location.state;
-
+  //console.log(initialCount);
   const [items, setItems] = useState(initialCount || {});
   const [selectedOption, setSelectedOption] = useState("DineIn");
 
@@ -75,6 +75,7 @@ function Main() {
       const orderItems = Object.entries(items).map(([name, details]) => ({
         name,
         quantity: details.quantity,
+        category: details.category,
       }));
 
       const totalTimeSafe = Object.values(items).reduce(
