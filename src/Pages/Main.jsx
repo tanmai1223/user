@@ -76,6 +76,7 @@ function Main() {
         name,
         quantity: details.quantity,
         category: details.category,
+        price:details.price,
       }));
 
       const totalTimeSafe = Object.values(items).reduce(
