@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "../Style/main.css";
 import Display from "../Component/Display";
 import Signin from "../Component/SingIn";
-
+const API_URL = import.meta.env.VITE_API_URL;
 function Home() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
