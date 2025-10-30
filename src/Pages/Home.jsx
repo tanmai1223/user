@@ -7,10 +7,20 @@ function Home() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [showSignin, setShowSignin] = useState(false);
+  const [userName, setUserName] = useState("");
 
   useEffect(() => {
     const userDetails = localStorage.getItem("userDetails");
-    if (!userDetails) setShowSignin(true);
+    if (userDetails) {
+      const parsed = JSON.parse(userDetails);
+      if (parsed.name) {
+        const formattedName =
+          parsed.name.charAt(0).toUpperCase() + parsed.name.slice(1).toLowerCase();
+        setUserName(formattedName);
+      }
+    } else {
+      setShowSignin(true);
+    }
   }, []);
 
   const categories = [
@@ -27,7 +37,9 @@ function Home() {
   return (
     <div className="home-page">
       <div className="headings">
-        <h2>Welcome 😊</h2>
+        <h2>
+          Welcome {userName ? ` ${userName}` : ""} 😊
+        </h2>
         <h3>Place your order here...</h3>
       </div>
 
@@ -60,7 +72,20 @@ function Home() {
         <Display item={selectedCategory} search={searchTerm} />
       </div>
 
-      {showSignin && <Signin onSubmit={() => setShowSignin(false)} />}
+      {showSignin && (
+        <Signin
+          onSubmit={() => {
+            setShowSignin(false);
+            const userDetails = JSON.parse(localStorage.getItem("userDetails"));
+            if (userDetails?.name) {
+              const formattedName =
+                userDetails.name.charAt(0).toUpperCase() +
+                userDetails.name.slice(1).toLowerCase();
+              setUserName(formattedName);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

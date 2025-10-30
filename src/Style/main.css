@@ -218,6 +218,17 @@
     padding: 10px 30px;
     font-size: 20px;
   }
+.footer button {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transition: all 0.3s ease;
+}
+
+.footer button.active-btn {
+  background-color: #28a745;
+  color: white;
+  cursor: pointer;
+}
 
   
 }

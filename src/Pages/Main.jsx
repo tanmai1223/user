@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import Ordered from "../Component/Ordered";
 import Instructions from "../Component/Instruction";
@@ -14,14 +14,26 @@ function Main() {
   const location = useLocation();
   const navigate = useNavigate();
   const initialCount = location.state;
-  //console.log(initialCount);
   const [items, setItems] = useState(initialCount || {});
   const [selectedOption, setSelectedOption] = useState("DineIn");
+  const [userName, setUserName] = useState("");
 
   const swipeRef = useRef(null);
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+
+  /* ===============================
+     🟢 Get User Name from LocalStorage
+  =============================== */
+  useEffect(() => {
+    const userDetails = JSON.parse(localStorage.getItem("userDetails"));
+    if (userDetails?.name) {
+      const formattedName =
+        userDetails.name.charAt(0).toUpperCase() + userDetails.name.slice(1);
+      setUserName(formattedName);
+    }
+  }, []);
 
   // Calculate totals
   const total = Object.values(items).reduce(
@@ -57,11 +69,21 @@ function Main() {
   const resetSwipe = () => {
     setIsResetting(true);
     setDragX(0);
-    setTimeout(() => setIsResetting(false), 300); // smooth reset
+    setTimeout(() => setIsResetting(false), 300);
   };
 
   const submitOrder = async () => {
     try {
+      // 🚫 Prevent submission if cart is empty
+      if (Object.keys(items).length === 0) {
+        toast.warn("Your cart is empty! Add items before submitting.", {
+          position: "top-center",
+          autoClose: 2500,
+        });
+        resetSwipe();
+        return;
+      }
+
       const userDetails = JSON.parse(localStorage.getItem("userDetails"));
       if (!userDetails) {
         toast.error("User details missing!", {
@@ -76,7 +98,7 @@ function Main() {
         name,
         quantity: details.quantity,
         category: details.category,
-        price:details.price,
+        price: details.price,
       }));
 
       const totalTimeSafe = Object.values(items).reduce(
@@ -152,16 +174,13 @@ function Main() {
   return (
     <div className="app-container">
       <div className="headings">
-        <h2>Welcome 😊</h2>
-        <h3>Place your order here...</h3>
+        <h2>Welcome {userName ? `${userName} 😊` : "😊"}</h2>
+        <h3>Your order list...</h3>
       </div>
 
-      {/* Ordered Items */}
       <Ordered count={items} setCount={setItems} />
-
       <Instructions />
 
-      {/* Toggle Buttons */}
       <div className="toggle-container">
         <button
           className={`toggle-btn ${
@@ -181,7 +200,6 @@ function Main() {
         </button>
       </div>
 
-      {/* Render selected option */}
       <div className="option-container">
         {selectedOption === "DineIn" && <DineIn total={total} />}
         {selectedOption === "TakeAway" && (
@@ -189,7 +207,6 @@ function Main() {
         )}
       </div>
 
-      {/* Swipe Button */}
       <div
         className="swipe-container"
         ref={swipeRef}
@@ -213,7 +230,6 @@ function Main() {
         <span className="swipe-text">Swipe to Submit</span>
       </div>
 
-      {/* Toast container */}
       <ToastContainer />
     </div>
   );

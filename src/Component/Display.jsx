@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { FaPlus, FaMinus } from "react-icons/fa6";
 import { useNavigate } from "react-router";
+import { toast, Toaster } from "react-hot-toast";
 
-// ✅ Memoized menu item (unchanged)
+// ✅ Reusable menu item
 const MenuItem = React.memo(({ m, itemCount, increment, decrement }) => (
   <div key={m._id || m.name} className="menu-item">
     <img src={m.image} alt={m.name} loading="lazy" />
@@ -29,16 +30,16 @@ function Display({ item, search }) {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const fetchingRef = useRef(false); // ✅ prevent parallel fetches
-  const abortRef = useRef(null); // ✅ cancel previous request if needed
+  const fetchingRef = useRef(false);
+  const abortRef = useRef(null);
 
+  // 🔹 Fetch menu items (category/lazy load)
   const fetchMenu = useCallback(
     async (pageNum) => {
-      if (fetchingRef.current) return; // block if already fetching
+      if (fetchingRef.current) return;
       fetchingRef.current = true;
       setLoading(true);
 
-      // cancel previous fetch if it’s still running
       if (abortRef.current) abortRef.current.abort();
       const controller = new AbortController();
       abortRef.current = controller;
@@ -68,9 +69,7 @@ function Display({ item, search }) {
           setHasMore(false);
         }
       } catch (err) {
-        if (err.name !== "AbortError") {
-          console.error("Error fetching menu:", err);
-        }
+        if (err.name !== "AbortError") console.error("Error fetching menu:", err);
       } finally {
         fetchingRef.current = false;
         setLoading(false);
@@ -79,21 +78,53 @@ function Display({ item, search }) {
     [item]
   );
 
-  // ✅ Initial load
+  // 🟢 Fetch data initially or when category changes (skip during search)
   useEffect(() => {
+    if (search?.trim()) return; // skip if searching
     setMenu([]);
     setPage(1);
     setHasMore(true);
     fetchMenu(1);
-  }, [item, fetchMenu]);
+  }, [item, fetchMenu, search]);
 
-  // ✅ Infinite scroll listener
+  // 🔍 Fetch search results directly from backend
   useEffect(() => {
+    if (!search?.trim()) return; // skip if no search
+
+    const fetchSearchResults = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `http://localhost:3000/api/menu/search?query=${encodeURIComponent(
+            search
+          )}`
+        );
+        const data = await res.json();
+        if (data.success) {
+          setMenu(data.data);
+          setHasMore(false);
+        } else {
+          setMenu([]);
+        }
+      } catch (err) {
+        console.error("Search error:", err);
+        setMenu([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSearchResults();
+  }, [search]);
+
+  // 🔄 Infinite scroll only for non-search mode
+  useEffect(() => {
+    if (search?.trim()) return;
+
     const scrollContainer = document.querySelector(".scroll-container");
     if (!scrollContainer) return;
 
     let scrollTimeout;
-
     const handleScroll = () => {
       if (scrollTimeout) return;
       scrollTimeout = setTimeout(() => {
@@ -102,7 +133,6 @@ function Display({ item, search }) {
           scrollContainer.scrollHeight - 200;
 
         if (nearBottom && !loading && hasMore && !fetchingRef.current) {
-          // wait for current to finish, then trigger next
           const nextPage = page + 1;
           setPage(nextPage);
           fetchMenu(nextPage);
@@ -113,12 +143,9 @@ function Display({ item, search }) {
 
     scrollContainer.addEventListener("scroll", handleScroll);
     return () => scrollContainer.removeEventListener("scroll", handleScroll);
-  }, [page, loading, hasMore, fetchMenu]);
+  }, [page, loading, hasMore, fetchMenu, search]);
 
-  const filteredMenu = menu.filter((m) =>
-    m.name?.toLowerCase().includes(search.toLowerCase())
-  );
-
+  // ➕➖ Counter functions
   const increment = (item) => {
     setCount((prev) => ({
       ...prev,
@@ -127,7 +154,7 @@ function Display({ item, search }) {
         price: item.price,
         image: item.image,
         time: item.averageTime,
-        category:item.category,
+        category: item.category,
       },
     }));
   };
@@ -143,16 +170,28 @@ function Display({ item, search }) {
           price: item.price,
           image: item.image,
           time: item.averageTime,
-          category:item.category,
+          category: item.category,
         },
       };
     });
   };
 
+  // 🟢 Handle Next Button
+  const handleNext = () => {
+    const selectedItems = Object.values(count).filter((c) => c.quantity > 0);
+    if (selectedItems.length === 0) {
+      toast.error("Please select at least one item!");
+      return;
+    }
+    navigate("/next", { state: count });
+  };
+
   return (
     <div className="menu-display">
-      {filteredMenu.length > 0 ? (
-        filteredMenu.map((m) => {
+      <Toaster position="top-center" reverseOrder={false} />
+
+      {menu.length > 0 ? (
+        menu.map((m) => {
           const itemCount = count[m.name] || { quantity: 0 };
           return (
             <MenuItem
@@ -170,12 +209,15 @@ function Display({ item, search }) {
 
       {loading && (
         <div className="loading-placeholder">
-          <p>Loading more items...</p>
+          <p>Loading...</p>
         </div>
       )}
 
       <div className="footer">
-        <button onClick={() => navigate("/next", { state: count })}>
+        <button
+          className={Object.values(count).some((c) => c.quantity > 0) ? "active-btn" : ""}
+          onClick={handleNext}
+        >
           Next
         </button>
       </div>
