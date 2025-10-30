@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from "react";
 import { FaPlus, FaMinus } from "react-icons/fa6";
 import { useNavigate } from "react-router";
 import { toast, Toaster } from "react-hot-toast";
-
+const API_URL = import.meta.env.VITE_API_URL;
 // ✅ Reusable menu item
 const MenuItem = React.memo(({ m, itemCount, increment, decrement }) => (
   <div key={m._id || m.name} className="menu-item">
@@ -46,10 +46,10 @@ function Display({ item, search }) {
 
       try {
         const url = item
-          ? `http://localhost:3000/api/menu/category?cat=${encodeURIComponent(
+          ? `${API_URL}/api/menu/category?cat=${encodeURIComponent(
               item
             )}&page=${pageNum}&limit=6`
-          : `http://localhost:3000/api/menu/lazy?page=${pageNum}&limit=6`;
+          : `${API_URL}/api/menu/lazy?page=${pageNum}&limit=6`;
 
         const res = await fetch(url, {
           cache: "no-store",
@@ -95,7 +95,7 @@ function Display({ item, search }) {
       setLoading(true);
       try {
         const res = await fetch(
-          `http://localhost:3000/api/menu/search?query=${encodeURIComponent(
+          `${API_URL}/api/menu/search?query=${encodeURIComponent(
             search
           )}`
         );

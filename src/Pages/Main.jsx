@@ -122,7 +122,7 @@ function Main() {
         averageTime: averageTimeSafe,
       };
 
-      const res = await fetch("http://localhost:3000/api/order", {
+      const res = await fetch("${API_URL}/api/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
