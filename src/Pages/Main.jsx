@@ -6,9 +6,10 @@ import DineIn from "../Component/DineIn";
 import TakeAway from "../Component/TakeAway";
 import { FaArrowRight } from "react-icons/fa";
 import "../Style/home.css";
-const API_URL = import.meta.env.VITE_API_URL;
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+const API_URL = import.meta.env.VITE_API_URL;
+
 
 function Main() {
   const location = useLocation();
@@ -122,7 +123,7 @@ function Main() {
         averageTime: averageTimeSafe,
       };
 
-      const res = await fetch("${API_URL}/api/order", {
+      const res = await fetch(`${API_URL}/api/order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
