@@ -25,7 +25,6 @@ body {
   font-family: "DM Sans", sans-serif;
   background-color: #f9f9f9;
   color: #222;
-   padding: 20px;
   overflow-x: hidden;
   overflow-y: auto;
 
@@ -84,6 +83,7 @@ body {
 ===================================== */
 
 @media (max-width: 992px) {
+  
   .app-container {
     padding: 20px;
   }
@@ -127,7 +127,7 @@ body {
 
 @media (max-width: 480px) {
   .app-container {
-    padding: 12px;
+    padding: 20px;
   }
 
   .headings {

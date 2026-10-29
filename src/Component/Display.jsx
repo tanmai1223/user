@@ -34,15 +34,6 @@ function Display({ item, search }) {
   const abortRef = useRef(null);
   const limit = window.innerWidth <= 768 ? 6 : 15;
 
-  const el = document.querySelector(".scroll-container");
-
-  if (el) {
-    console.log("Visible height:", el.clientHeight);
-    console.log("Content height:", el.scrollHeight);
-    console.log("Can scroll:", el.scrollHeight > el.clientHeight);
-  } else {
-    console.log("Scroll container not found yet.");
-  }
 
   // 🔹 Fetch menu items (category/lazy load)
   const fetchMenu = useCallback(

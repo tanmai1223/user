@@ -209,14 +209,21 @@ function Main() {
       </div>
 
       <div
-        className="swipe-container"
-        ref={swipeRef}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseUp}
-        onMouseUp={handleMouseUp}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
+  className="swipe-container"
+  ref={swipeRef}
+  style={{
+    "--swipe-progress": `${
+      swipeRef.current
+        ? (dragX / (swipeRef.current.clientWidth - 68)) * 100
+        : 0
+    }%`,
+  }}
+  onMouseMove={handleMouseMove}
+  onMouseLeave={handleMouseUp}
+  onMouseUp={handleMouseUp}
+  onTouchMove={handleTouchMove}
+  onTouchEnd={handleTouchEnd}
+>
         <div
           className="swipe-btn"
           style={{
