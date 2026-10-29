@@ -32,60 +32,104 @@ function Display({ item, search }) {
   const [loading, setLoading] = useState(false);
   const fetchingRef = useRef(false);
   const abortRef = useRef(null);
+  const limit = window.innerWidth <= 768 ? 6 : 15;
+
+  const el = document.querySelector(".scroll-container");
+
+  if (el) {
+    console.log("Visible height:", el.clientHeight);
+    console.log("Content height:", el.scrollHeight);
+    console.log("Can scroll:", el.scrollHeight > el.clientHeight);
+  } else {
+    console.log("Scroll container not found yet.");
+  }
 
   // 🔹 Fetch menu items (category/lazy load)
   const fetchMenu = useCallback(
-    async (pageNum) => {
+    async (pageNum, reset = false) => {
       if (fetchingRef.current) return;
+
       fetchingRef.current = true;
       setLoading(true);
 
-      if (abortRef.current) abortRef.current.abort();
       const controller = new AbortController();
       abortRef.current = controller;
 
       try {
         const url = item
           ? `${API_URL}/api/menu/category?cat=${encodeURIComponent(
-              item
-            )}&page=${pageNum}&limit=6`
-          : `${API_URL}/api/menu/lazy?page=${pageNum}&limit=6`;
+              item,
+            )}&page=${pageNum}&limit=${limit}`
+          : `${API_URL}/api/menu/lazy?page=${pageNum}&limit=${limit}`;
 
         const res = await fetch(url, {
           cache: "no-store",
           signal: controller.signal,
         });
+
+        if (!res.ok) {
+          throw new Error(`Request failed: ${res.status}`);
+        }
+
         const data = await res.json();
 
-        if (data.success && data.data.length > 0) {
+        if (data.success) {
+          const receivedItems = data.data || [];
+
           setMenu((prev) => {
-            const newItems = data.data.filter(
-              (itm) => !prev.some((existing) => existing._id === itm._id)
+            const existingItems = reset ? [] : prev;
+
+            const newItems = receivedItems.filter(
+              (itm) =>
+                !existingItems.some((existing) => existing._id === itm._id),
             );
-            return [...prev, ...newItems];
+
+            return [...existingItems, ...newItems];
           });
+
           setHasMore(pageNum < data.totalPages);
         } else {
           setHasMore(false);
         }
       } catch (err) {
-        if (err.name !== "AbortError") console.error("Error fetching menu:", err);
+        if (err.name !== "AbortError") {
+          console.error("Error fetching menu:", err);
+        }
       } finally {
-        fetchingRef.current = false;
-        setLoading(false);
+        if (abortRef.current === controller) {
+          abortRef.current = null;
+          fetchingRef.current = false;
+          setLoading(false);
+        }
       }
     },
-    [item]
+    [item, limit],
   );
 
   // 🟢 Fetch data initially or when category changes (skip during search)
   useEffect(() => {
-    if (search?.trim()) return; // skip if searching
+    if (search?.trim()) return;
+
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
+
+    fetchingRef.current = false;
+
     setMenu([]);
     setPage(1);
     setHasMore(true);
-    fetchMenu(1);
-  }, [item, fetchMenu, search]);
+
+    fetchMenu(1, true);
+
+    return () => {
+      if (abortRef.current) {
+        abortRef.current.abort();
+        abortRef.current = null;
+      }
+    };
+  }, [item, search, fetchMenu]);
 
   // 🔍 Fetch search results directly from backend
   useEffect(() => {
@@ -95,9 +139,7 @@ function Display({ item, search }) {
       setLoading(true);
       try {
         const res = await fetch(
-          `${API_URL}/api/menu/search?query=${encodeURIComponent(
-            search
-          )}`
+          `${API_URL}/api/menu/search?query=${encodeURIComponent(search)}`,
         );
         const data = await res.json();
         if (data.success) {
@@ -122,29 +164,61 @@ function Display({ item, search }) {
     if (search?.trim()) return;
 
     const scrollContainer = document.querySelector(".scroll-container");
-    if (!scrollContainer) return;
 
-    let scrollTimeout;
+    // If the container cannot be found, use the browser window.
+    const useWindowScroll =
+      !scrollContainer ||
+      scrollContainer.scrollHeight <= scrollContainer.clientHeight;
+
+    let timeout;
+
     const handleScroll = () => {
-      if (scrollTimeout) return;
-      scrollTimeout = setTimeout(() => {
-        const nearBottom =
-          scrollContainer.scrollTop + scrollContainer.clientHeight >=
-          scrollContainer.scrollHeight - 200;
+      if (timeout) return;
+
+      timeout = setTimeout(() => {
+        let nearBottom = false;
+
+        if (useWindowScroll) {
+          const scrollPosition = window.scrollY + window.innerHeight;
+
+          nearBottom =
+            scrollPosition >= document.documentElement.scrollHeight - 250;
+        } else {
+          nearBottom =
+            scrollContainer.scrollTop + scrollContainer.clientHeight >=
+            scrollContainer.scrollHeight - 250;
+        }
 
         if (nearBottom && !loading && hasMore && !fetchingRef.current) {
           const nextPage = page + 1;
+
           setPage(nextPage);
           fetchMenu(nextPage);
         }
-        scrollTimeout = null;
-      }, 200);
+
+        timeout = null;
+      }, 150);
     };
 
-    scrollContainer.addEventListener("scroll", handleScroll);
-    return () => scrollContainer.removeEventListener("scroll", handleScroll);
-  }, [page, loading, hasMore, fetchMenu, search]);
+    if (useWindowScroll) {
+      window.addEventListener("scroll", handleScroll);
+    } else {
+      scrollContainer.addEventListener("scroll", handleScroll);
+    }
 
+    // Check immediately in case the content doesn't fill the screen.
+    handleScroll();
+
+    return () => {
+      if (useWindowScroll) {
+        window.removeEventListener("scroll", handleScroll);
+      } else {
+        scrollContainer.removeEventListener("scroll", handleScroll);
+      }
+
+      clearTimeout(timeout);
+    };
+  }, [page, loading, hasMore, fetchMenu, search]);
   // ➕➖ Counter functions
   const increment = (item) => {
     setCount((prev) => ({
@@ -162,50 +236,54 @@ function Display({ item, search }) {
   const decrement = (item) => {
     setCount((prev) => {
       const current = prev[item.name]?.quantity || 0;
+
       if (current <= 0) return prev;
-      return {
-        ...prev,
-        [item.name]: {
+
+      const updatedCount = { ...prev };
+
+      if (current === 1) {
+        // Remove the item completely when quantity reaches 0
+        delete updatedCount[item.name];
+      } else {
+        updatedCount[item.name] = {
+          ...updatedCount[item.name],
           quantity: current - 1,
-          price: item.price,
-          image: item.image,
-          time: item.averageTime,
-          category: item.category,
-        },
-      };
+        };
+      }
+
+      return updatedCount;
     });
   };
 
   // 🟢 Handle Next Button
   const handleNext = () => {
-    const selectedItems = Object.values(count).filter((c) => c.quantity > 0);
-    if (selectedItems.length === 0) {
+    const selectedItems = Object.fromEntries(
+      Object.entries(count).filter(([, item]) => item.quantity > 0),
+    );
+    if (Object.keys(selectedItems).length === 0) {
       toast.error("Please select at least one item!");
       return;
     }
-    navigate("/next", { state: count });
+    navigate("/next", { state: selectedItems });
   };
-
   return (
     <div className="menu-display">
       <Toaster position="top-center" reverseOrder={false} />
 
-      {menu.length > 0 ? (
-        menu.map((m) => {
-          const itemCount = count[m.name] || { quantity: 0 };
-          return (
-            <MenuItem
-              key={m._id || m.name}
-              m={m}
-              itemCount={itemCount}
-              increment={increment}
-              decrement={decrement}
-            />
-          );
-        })
-      ) : (
-        !loading && <p>No items found</p>
-      )}
+      {menu.length > 0
+        ? menu.map((m) => {
+            const itemCount = count[m.name] || { quantity: 0 };
+            return (
+              <MenuItem
+                key={m._id || m.name}
+                m={m}
+                itemCount={itemCount}
+                increment={increment}
+                decrement={decrement}
+              />
+            );
+          })
+        : !loading && <p>No items found</p>}
 
       {loading && (
         <div className="loading-placeholder">
@@ -215,7 +293,9 @@ function Display({ item, search }) {
 
       <div className="footer">
         <button
-          className={Object.values(count).some((c) => c.quantity > 0) ? "active-btn" : ""}
+          className={
+            Object.values(count).some((c) => c.quantity > 0) ? "active-btn" : ""
+          }
           onClick={handleNext}
         >
           Next

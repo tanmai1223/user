@@ -29,9 +29,9 @@ function Final() {
         <h1>Thank You</h1>
         <IoIosCheckmarkCircleOutline className="checkmark" />
       </div>
-      <div className="redirect-count">
-        Redirecting to home page in {count}
-      </div>
+      <div className="redirect-count" aria-live="polite">
+  Redirecting to home page in {count} second{count !== 1 ? "s" : ""}...
+</div>
     </div>
   );
 }

@@ -1,39 +1,145 @@
-@media only screen and (max-width: 480px) {
+/* =====================================
+   FINAL / THANK YOU PAGE
+===================================== */
 
+.final-container {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  position: relative;
+  padding: 30px 20px;
+
+  background-color: #20BF6D;
+  font-family: "DM Sans", sans-serif;
+  overflow: hidden;
+}
+
+/* =====================================
+   THANK YOU SECTION
+===================================== */
+
+.thank-you-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  text-align: center;
+}
+
+.thank-you-section h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  color: #222;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+/* Checkmark icon */
+
+.checkmark {
+  font-size: clamp(4rem, 10vw, 7rem);
+  color: #fff;
+  flex-shrink: 0;
+}
+
+/* =====================================
+   REDIRECT COUNTDOWN
+===================================== */
+
+.redirect-count {
+  position: absolute;
+  bottom: 35px;
+  left: 20px;
+  right: 20px;
+
+  text-align: center;
+  font-size: clamp(0.9rem, 2vw, 1.2rem);
+  font-weight: 500;
+  color: #174d32;
+  line-height: 1.5;
+}
+
+/* =====================================
+   TABLETS
+===================================== */
+
+@media (max-width: 768px) {
   .final-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center; /* vertically center */
-    align-items: center; /* horizontally center */
-    min-height: 100vh;
-    padding: 20px;
-    position: relative;
-    background-color: #20BF6D;
-    font-family: "DM Sans", sans-serif;
+    padding: 25px 18px;
   }
 
   .thank-you-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
+    gap: 18px;
+  }
+
+  .redirect-count {
+    bottom: 28px;
+  }
+}
+
+/* =====================================
+   MOBILE PHONES
+===================================== */
+
+@media (max-width: 480px) {
+  .final-container {
+    padding: 20px 15px;
+  }
+
+  .thank-you-section {
+    gap: 15px;
   }
 
   .thank-you-section h1 {
     font-size: 2rem;
-    color: #222;
   }
 
   .checkmark {
-    font-size: 4rem;
-    color: #dad8d8;
+    font-size: 4.5rem;
   }
 
   .redirect-count {
-    position: absolute;
-    bottom: 30px;
-    font-size: 1rem;
-    color: #555;
+    bottom: 25px;
+    font-size: 0.95rem;
+  }
+}
+
+/* =====================================
+   EXTRA SMALL PHONES
+===================================== */
+
+@media (max-width: 320px) {
+  .thank-you-section h1 {
+    font-size: 1.7rem;
   }
 
+  .checkmark {
+    font-size: 3.5rem;
+  }
+
+  .redirect-count {
+    left: 10px;
+    right: 10px;
+    bottom: 18px;
+    font-size: 0.85rem;
+  }
+}
+
+/* =====================================
+   ACCESSIBILITY
+===================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .final-container {
+    scroll-behavior: auto;
+  }
 }
